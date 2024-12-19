@@ -1,41 +1,27 @@
-name: Build and Analyze with SonarQube
+name: Build
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
+
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    name: Build and analyze
+    runs-on: windows-latest
+    
     steps:
-      # 1. 소스코드 체크아웃
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # 2. Java 또는 빌드 도구 설치 (필요한 경우)
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
         with:
-          java-version: '17'
-
-      # 3. 프로젝트 빌드 (예: Gradle, Maven, .NET 등)
-      - name: Build the project
-        run: |
-          ./gradlew build
-
-      # 4. SonarScanner 실행
-      - name: Run SonarQube analysis
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: sonarsource/sonarqube-scan-action@v4
         env:
-          SONAR_HOST_URL: http://localhost:9000 # SonarQube 서버 URL
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # GitHub Secrets에 저장한 SonarQube 토큰
-        run: |
-          sonar-scanner \
-            -Dsonar.projectKey=WebGoat-Test \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.login=$SONAR_TOKEN
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      # If you wish to fail your job when the Quality Gate is red, uncomment the
+      # following lines. This would typically be used to fail a deployment.
+      # - uses: sonarsource/sonarqube-quality-gate-action@v1
+      #   timeout-minutes: 5
+      #   env:
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
